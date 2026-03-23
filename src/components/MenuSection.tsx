@@ -162,7 +162,16 @@ export default function MenuSection({ cart, onAddToCart, onScrollTo }: MenuSecti
                 >
                   <div className="absolute inset-0 flex items-center justify-center">
                     <span className="text-6xl opacity-40 group-hover:opacity-60 group-hover:scale-110 transition-all duration-500">
-                      {item.category === "Роллы" ? "🍣" : item.category === "Суши" ? "🍱" : item.category === "Сашими" ? "🐟" : "🎋"}
+                      {item.category === "Роллы" ? "🍣"
+                        : item.category === "Роллы запеченные" ? "🔥"
+                        : item.category === "Мак роллы" ? "🌯"
+                        : item.category === "Суши" ? "🍱"
+                        : item.category === "Роллы сладкие" ? "🍓"
+                        : item.category === "Сеты" ? "🎋"
+                        : item.category === "Суши-торты" ? "🎂"
+                        : item.category === "Соусы" ? "🫙"
+                        : item.category === "Новинки" ? "✨"
+                        : "🍣"}
                     </span>
                   </div>
                   {item.badge && (
