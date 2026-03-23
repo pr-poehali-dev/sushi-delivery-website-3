@@ -160,8 +160,15 @@ export default function MenuSection({ cart, onAddToCart, onScrollTo }: MenuSecti
                   className="h-40 relative overflow-hidden"
                   style={{ background: `linear-gradient(135deg, hsl(${item.id * 30}, 30%, 12%), hsl(${item.id * 20}, 20%, 8%))` }}
                 >
+                  {item.image && (
+                    <img
+                      src={item.image}
+                      alt={item.name}
+                      className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                  )}
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-6xl opacity-40 group-hover:opacity-60 group-hover:scale-110 transition-all duration-500">
+                    <span className={`text-6xl transition-all duration-500 ${item.image ? "opacity-0" : "opacity-40 group-hover:opacity-60 group-hover:scale-110"}`}>
                       {item.category === "Роллы" ? "🍣"
                         : item.category === "Роллы запеченные" ? "🔥"
                         : item.category === "Мак роллы" ? "🌯"

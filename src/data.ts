@@ -17,10 +17,11 @@ export const menuCategories = [
 ];
 
 export const menuItems = [
-  { id: 1, name: "Дракон", category: "Роллы", price: 890, weight: "320г", desc: "Угорь, авокадо, огурец, икра тобико", badge: "Хит", spicy: false },
-  { id: 2, name: "Феникс", category: "Роллы", price: 760, weight: "290г", desc: "Тунец, манго, сыр, острый соус", badge: null, spicy: true },
-  { id: 3, name: "Чёрный принц", category: "Роллы", price: 920, weight: "300г", desc: "Чернильный рис, краб, авокадо, икра", badge: null, spicy: false },
-  { id: 4, name: "Эдамаме Трюфель", category: "Роллы", price: 680, weight: "260г", desc: "Соевые бобы, трюфельное масло, кунжут", badge: null, spicy: false },
+  { id: 1, name: "Дракон", category: "Роллы", price: 890, weight: "320г", desc: "Угорь, авокадо, огурец, икра тобико", badge: "Хит", spicy: false, image: null },
+  { id: 2, name: "Феникс", category: "Роллы", price: 760, weight: "290г", desc: "Тунец, манго, сыр, острый соус", badge: null, spicy: true, image: null },
+  { id: 3, name: "Чёрный принц", category: "Роллы", price: 920, weight: "300г", desc: "Чернильный рис, краб, авокадо, икра", badge: null, spicy: false, image: null },
+  { id: 4, name: "Эдамаме Трюфель", category: "Роллы", price: 680, weight: "260г", desc: "Соевые бобы, трюфельное масло, кунжут", badge: null, spicy: false, image: null },
+  { id: 30, name: "Филадельфия с лососем", category: "Роллы", price: 790, weight: "280г", desc: "Лосось, сливочный сыр, огурец, рис", badge: null, spicy: false, image: "https://cdn.poehali.dev/projects/02835ea0-044e-4985-b042-6784b0274c57/bucket/80f24c8b-c8ef-4974-bbde-ac4b74bf6e7c.jpg" },
   { id: 5, name: "Лосось Запечённый", category: "Роллы запеченные", price: 820, weight: "300г", desc: "Лосось, сливочный сыр, соус спайси, запечены до золотистой корочки", badge: "Хит", spicy: false },
   { id: 6, name: "Краб Горячий", category: "Роллы запеченные", price: 870, weight: "310г", desc: "Крабовое мясо, авокадо, сыр, майонез — запечены в духовке", badge: null, spicy: false },
   { id: 7, name: "Вулкан", category: "Роллы запеченные", price: 950, weight: "320г", desc: "Тигровые креветки, сыр, соус терияки, запечены с кунжутом", badge: "Новинка", spicy: true },
