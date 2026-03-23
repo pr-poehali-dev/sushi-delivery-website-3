@@ -1,6 +1,8 @@
 import { useState } from "react";
 import Icon from "@/components/ui/icon";
 
+const SUBMIT_ORDER_URL = "https://functions.poehali.dev/84f60205-efe9-43b9-8f9d-51b38bba1a3b";
+
 const HERO_IMAGE = "https://cdn.poehali.dev/projects/02835ea0-044e-4985-b042-6784b0274c57/files/220231a1-6843-4454-af9e-bee9ca252a5b.jpg";
 const CHEF_IMAGE = "https://cdn.poehali.dev/projects/02835ea0-044e-4985-b042-6784b0274c57/files/cde1045e-9d1d-4a5e-9c83-1b82d98d9877.jpg";
 
@@ -35,13 +37,75 @@ export default function Index() {
   const [cart, setCart] = useState<{ [key: number]: number }>({});
   const loyaltyBonuses = 1250;
 
+  const [formName, setFormName] = useState("");
+  const [formPhone, setFormPhone] = useState("");
+  const [formComment, setFormComment] = useState("");
+  const [formStatus, setFormStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [formMessage, setFormMessage] = useState("");
+
+  const [showOrderModal, setShowOrderModal] = useState(false);
+  const [orderName, setOrderName] = useState("");
+  const [orderPhone, setOrderPhone] = useState("");
+  const [orderComment, setOrderComment] = useState("");
+  const [orderStatus, setOrderStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+
   const filtered = activeCategory === "Все" ? menuItems : menuItems.filter(i => i.category === activeCategory);
   const totalInCart = Object.values(cart).reduce((a, b) => a + b, 0);
+  const cartItems = menuItems.filter(i => cart[i.id] > 0).map(i => ({ id: i.id, name: i.name, price: i.price, qty: cart[i.id] }));
+  const cartTotal = cartItems.reduce((sum, i) => sum + i.price * i.qty, 0);
 
   const addToCart = (id: number) => setCart(prev => ({ ...prev, [id]: (prev[id] || 0) + 1 }));
 
   const scrollTo = (id: string) => {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const submitContactForm = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formName.trim() || !formPhone.trim()) return;
+    setFormStatus("loading");
+    try {
+      const res = await fetch(SUBMIT_ORDER_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: formName, phone: formPhone, comment: formComment, items: [], totalPrice: 0 }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setFormStatus("success");
+        setFormMessage(data.message || "Заявка принята!");
+        setFormName(""); setFormPhone(""); setFormComment("");
+      } else {
+        setFormStatus("error");
+        setFormMessage(data.error || "Ошибка при отправке");
+      }
+    } catch {
+      setFormStatus("error");
+      setFormMessage("Не удалось отправить. Попробуйте ещё раз.");
+    }
+  };
+
+  const submitOrder = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!orderName.trim() || !orderPhone.trim()) return;
+    setOrderStatus("loading");
+    try {
+      const res = await fetch(SUBMIT_ORDER_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: orderName, phone: orderPhone, comment: orderComment, items: cartItems, totalPrice: cartTotal }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setOrderStatus("success");
+        setCart({});
+      } else {
+        setOrderStatus("error");
+        setOrderComment(data.error || "Ошибка при отправке");
+      }
+    } catch {
+      setOrderStatus("error");
+    }
   };
 
   return (
@@ -59,7 +123,9 @@ export default function Index() {
               className="hover:text-primary transition-colors duration-300">{label}</button>
           ))}
         </div>
-        <button onClick={() => scrollTo("menu")} className="relative flex items-center gap-2 gold-border rounded-full px-4 py-2 text-sm text-primary hover:bg-primary/10 transition-all duration-300">
+        <button
+          onClick={() => totalInCart > 0 ? setShowOrderModal(true) : scrollTo("menu")}
+          className="relative flex items-center gap-2 gold-border rounded-full px-4 py-2 text-sm text-primary hover:bg-primary/10 transition-all duration-300">
           <Icon name="ShoppingBag" size={16} />
           {totalInCart > 0 && (
             <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center font-semibold">
@@ -385,27 +451,47 @@ export default function Index() {
               ))}
             </div>
             <div className="dark-card rounded-2xl p-8">
-              <h3 className="font-display text-2xl font-semibold mb-6">Оставить заявку</h3>
-              <div className="space-y-4">
-                <div>
-                  <label className="text-muted-foreground text-xs tracking-wider block mb-2">ВАШЕ ИМЯ</label>
-                  <input type="text" placeholder="Александр"
-                    className="w-full bg-secondary gold-border rounded px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-colors" />
+              {formStatus === "success" ? (
+                <div className="text-center py-8">
+                  <div className="w-16 h-16 rounded-full gold-gradient flex items-center justify-center mx-auto mb-4">
+                    <Icon name="Check" size={28} className="text-primary-foreground" />
+                  </div>
+                  <h3 className="font-display text-2xl font-semibold mb-2">Заявка отправлена!</h3>
+                  <p className="text-muted-foreground text-sm leading-relaxed mb-6">{formMessage}</p>
+                  <button onClick={() => setFormStatus("idle")}
+                    className="gold-border text-primary px-6 py-2 text-sm tracking-widest hover:bg-primary/10 transition-all">
+                    НОВАЯ ЗАЯВКА
+                  </button>
                 </div>
-                <div>
-                  <label className="text-muted-foreground text-xs tracking-wider block mb-2">ТЕЛЕФОН</label>
-                  <input type="tel" placeholder="+7 (___) ___-__-__"
-                    className="w-full bg-secondary gold-border rounded px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-colors" />
-                </div>
-                <div>
-                  <label className="text-muted-foreground text-xs tracking-wider block mb-2">КОММЕНТАРИЙ</label>
-                  <textarea placeholder="Уточните адрес или пожелания к заказу..." rows={3}
-                    className="w-full bg-secondary gold-border rounded px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-colors resize-none" />
-                </div>
-                <button className="w-full gold-gradient text-primary-foreground py-4 text-sm tracking-widest font-semibold hover:opacity-90 transition-opacity rounded">
-                  ОТПРАВИТЬ ЗАЯВКУ
-                </button>
-              </div>
+              ) : (
+                <form onSubmit={submitContactForm} className="space-y-4">
+                  <h3 className="font-display text-2xl font-semibold mb-6">Оставить заявку</h3>
+                  <div>
+                    <label className="text-muted-foreground text-xs tracking-wider block mb-2">ВАШЕ ИМЯ *</label>
+                    <input type="text" placeholder="Александр" required value={formName} onChange={e => setFormName(e.target.value)}
+                      className="w-full bg-secondary gold-border rounded px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-colors" />
+                  </div>
+                  <div>
+                    <label className="text-muted-foreground text-xs tracking-wider block mb-2">ТЕЛЕФОН *</label>
+                    <input type="tel" placeholder="+7 (___) ___-__-__" required value={formPhone} onChange={e => setFormPhone(e.target.value)}
+                      className="w-full bg-secondary gold-border rounded px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-colors" />
+                  </div>
+                  <div>
+                    <label className="text-muted-foreground text-xs tracking-wider block mb-2">КОММЕНТАРИЙ</label>
+                    <textarea placeholder="Уточните адрес или пожелания к заказу..." rows={3} value={formComment} onChange={e => setFormComment(e.target.value)}
+                      className="w-full bg-secondary gold-border rounded px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-colors resize-none" />
+                  </div>
+                  {formStatus === "error" && (
+                    <p className="text-red-400 text-sm">{formMessage}</p>
+                  )}
+                  <button type="submit" disabled={formStatus === "loading"}
+                    className="w-full gold-gradient text-primary-foreground py-4 text-sm tracking-widest font-semibold hover:opacity-90 transition-opacity rounded disabled:opacity-50 flex items-center justify-center gap-2">
+                    {formStatus === "loading" ? (
+                      <><Icon name="Loader2" size={16} className="animate-spin" />ОТПРАВЛЯЕМ...</>
+                    ) : "ОТПРАВИТЬ ЗАЯВКУ"}
+                  </button>
+                </form>
+              )}
             </div>
           </div>
         </div>
@@ -429,6 +515,103 @@ export default function Index() {
           </div>
         </div>
       </footer>
+
+      {/* CART MODAL */}
+      {showOrderModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => { if (orderStatus !== "loading") setShowOrderModal(false); }} />
+          <div className="relative dark-card rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto animate-fade-in-up">
+            <div className="p-8">
+              {orderStatus === "success" ? (
+                <div className="text-center py-8">
+                  <div className="w-20 h-20 rounded-full gold-gradient flex items-center justify-center mx-auto mb-6">
+                    <Icon name="CheckCheck" size={36} className="text-primary-foreground" />
+                  </div>
+                  <h2 className="font-display text-3xl font-semibold mb-3">Заказ принят!</h2>
+                  <p className="text-muted-foreground font-light mb-2">Мы свяжемся с вами в ближайшее время для подтверждения.</p>
+                  <p className="text-primary text-sm mb-8">Примерное время доставки: 45–60 минут</p>
+                  <button onClick={() => { setShowOrderModal(false); setOrderStatus("idle"); setOrderName(""); setOrderPhone(""); setOrderComment(""); }}
+                    className="gold-gradient text-primary-foreground px-8 py-3 text-sm tracking-widest font-semibold hover:opacity-90 transition-opacity rounded">
+                    ОТЛИЧНО!
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="font-display text-2xl font-semibold">Оформление заказа</h2>
+                    <button onClick={() => setShowOrderModal(false)}
+                      className="w-8 h-8 rounded-full gold-border flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors">
+                      <Icon name="X" size={14} />
+                    </button>
+                  </div>
+
+                  {/* Cart items */}
+                  <div className="space-y-3 mb-6">
+                    {cartItems.map(item => (
+                      <div key={item.id} className="flex items-center justify-between py-2 gold-border-top">
+                        <div>
+                          <div className="font-semibold text-sm">{item.name}</div>
+                          <div className="text-muted-foreground text-xs">{item.qty} × {item.price.toLocaleString()}₽</div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className="font-display text-lg gold-text font-semibold">
+                            {(item.price * item.qty).toLocaleString()}₽
+                          </span>
+                          <button onClick={() => setCart(prev => {
+                            const next = { ...prev };
+                            if (next[item.id] > 1) next[item.id]--;
+                            else delete next[item.id];
+                            return next;
+                          })} className="w-6 h-6 rounded-full gold-border flex items-center justify-center text-muted-foreground hover:text-primary transition-colors text-xs">
+                            <Icon name="Minus" size={10} />
+                          </button>
+                          <span className="text-sm w-4 text-center">{cart[item.id]}</span>
+                          <button onClick={() => addToCart(item.id)}
+                            className="w-6 h-6 rounded-full gold-border flex items-center justify-center text-muted-foreground hover:text-primary transition-colors">
+                            <Icon name="Plus" size={10} />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="flex items-center justify-between py-4 mb-6" style={{ borderTop: "1px solid hsl(42,50%,30%)", borderBottom: "1px solid hsl(42,50%,30%)" }}>
+                    <span className="font-semibold">Итого</span>
+                    <span className="font-display text-2xl gold-text font-semibold">{cartTotal.toLocaleString()}₽</span>
+                  </div>
+
+                  <form onSubmit={submitOrder} className="space-y-4">
+                    <div>
+                      <label className="text-muted-foreground text-xs tracking-wider block mb-2">ВАШЕ ИМЯ *</label>
+                      <input type="text" placeholder="Александр" required value={orderName} onChange={e => setOrderName(e.target.value)}
+                        className="w-full bg-secondary gold-border rounded px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-colors" />
+                    </div>
+                    <div>
+                      <label className="text-muted-foreground text-xs tracking-wider block mb-2">ТЕЛЕФОН *</label>
+                      <input type="tel" placeholder="+7 (___) ___-__-__" required value={orderPhone} onChange={e => setOrderPhone(e.target.value)}
+                        className="w-full bg-secondary gold-border rounded px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-colors" />
+                    </div>
+                    <div>
+                      <label className="text-muted-foreground text-xs tracking-wider block mb-2">АДРЕС И ПОЖЕЛАНИЯ</label>
+                      <textarea placeholder="Улица, дом, квартира..." rows={2} value={orderComment} onChange={e => setOrderComment(e.target.value)}
+                        className="w-full bg-secondary gold-border rounded px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-colors resize-none" />
+                    </div>
+                    {orderStatus === "error" && (
+                      <p className="text-red-400 text-sm">Ошибка при отправке. Попробуйте ещё раз.</p>
+                    )}
+                    <button type="submit" disabled={orderStatus === "loading"}
+                      className="w-full gold-gradient text-primary-foreground py-4 text-sm tracking-widest font-semibold hover:opacity-90 transition-opacity rounded disabled:opacity-50 flex items-center justify-center gap-2">
+                      {orderStatus === "loading" ? (
+                        <><Icon name="Loader2" size={16} className="animate-spin" />ОФОРМЛЯЕМ...</>
+                      ) : `ОФОРМИТЬ ЗАКАЗ — ${cartTotal.toLocaleString()}₽`}
+                    </button>
+                  </form>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

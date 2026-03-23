@@ -1,0 +1,34 @@
+{
+  "tests": [
+    {
+      "name": "OPTIONS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Submit valid order",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "name": "Тест Тестов",
+        "phone": "+7 (999) 123-45-67",
+        "comment": "Тестовый заказ",
+        "items": [{"id": 1, "name": "Дракон", "price": 890, "qty": 2}],
+        "totalPrice": 1780
+      },
+      "expectedStatus": 200,
+      "expectedBody": {"success": true},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Submit without required fields",
+      "method": "POST",
+      "path": "/",
+      "body": {"comment": "без имени"},
+      "expectedStatus": 400,
+      "expectedBody": {"error": "Имя и телефон обязательны"},
+      "bodyMatcher": "partial"
+    }
+  ]
+}
